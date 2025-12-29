@@ -1,7 +1,6 @@
 import vectorbase.matrices.Matrix;
 import vectorbase.matrices.vectors.Vector;
 
-import java.util.Arrays;
 import java.util.InvalidPropertiesFormatException;
 
 public class Main {
@@ -12,8 +11,6 @@ public class Main {
         Matrix m = new Matrix(r1, r2, r3);
 
         Vector v = new Vector(3,4,5,6);
-
-        System.out.println(Arrays.toString(m.getLUFactorization()));
 
     }
 }

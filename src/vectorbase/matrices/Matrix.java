@@ -19,8 +19,8 @@ public class Matrix extends VectorBase {
     }
 
     public double[] getColumn(int col) {
-        double[] res = new double[columnCount];
-        for (int i = 0; i < columnCount; i++) {
+        double[] res = new double[rowCount];
+        for (int i = 0; i < rowCount; i++) {
             res[i] = matrix[i][col];
         }
 
@@ -292,6 +292,19 @@ public class Matrix extends VectorBase {
         SquareMatrix l = (new SquareMatrix(ref.getMatrix2())).inverse();
 
         return new Matrix[] {u, l};
+    }
+
+    public boolean isOrthogonal() throws InvalidPropertiesFormatException {
+        for (int i = 0; i < columnCount - 1; i++) {
+            for (int j = i + 1; j < columnCount; j++) {
+                Vector v1 = new Vector(getColumn(i));
+                Vector v2 = new Vector(getColumn(j));
+
+                if (!(v1.isOrthonormalWith(v2))) return false;
+            }
+        }
+
+        return true;
     }
 
     @Override
