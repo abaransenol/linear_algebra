@@ -13,15 +13,36 @@ public class Vector extends Matrix {
         }
     }
 
+    //TODO: projection to vector ve projection to basis ekle, orthogonal basis bulma işini hallet.
+
     public Vector(Matrix m) {
-        super(m.getColumn(0));
+        super(m.getMatrix());
     }
 
     public boolean isOrthogonalWith(Vector v) throws InvalidPropertiesFormatException {
-        return innerProductWith(v) == 0;
+        return this.innerProductWith(v) == 0;
     }
 
     public boolean isOrthonormalWith(Vector v) throws InvalidPropertiesFormatException {
-        return isOrthogonalWith(v) && norm() == 1;
+        return this.isOrthogonalWith(v) && norm() == 1;
+    }
+
+    public Vector projectionOf(Vector v) throws InvalidPropertiesFormatException {
+        double coefficient = this.innerProductWith(v) / v.innerProductWith(v);
+
+        return new Vector((Matrix) v.scaleWith(coefficient));
+    }
+
+    public Vector projectionOf(VectorSet vectorSet) throws InvalidPropertiesFormatException {
+        Vector[] vectors = vectorSet.vectors();
+        Vector result = this.projectionOf(vectors[0]);
+
+        for (int i = 1; i < vectorSet.getSize(); i++) {
+            if (vectors[i] == null) continue;
+            Vector proj = this.projectionOf(vectors[i]);
+            result = new Vector((Matrix) result.add(proj));
+        }
+
+        return result;
     }
 }

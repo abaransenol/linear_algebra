@@ -2,6 +2,7 @@ package vectorbase.matrices;
 
 import vectorbase.*;
 import vectorbase.matrices.vectors.Vector;
+import vectorbase.matrices.vectors.VectorSet;
 
 import java.util.InvalidPropertiesFormatException;
 
@@ -31,15 +32,39 @@ public class Matrix extends VectorBase {
         return matrix.clone();
     }
 
+    public int getRowCount() {
+        return rowCount;
+    }
+
+    public int getColumnCount() {
+        return columnCount;
+    }
+
     public void set(int row, int col, double val) {
         matrix[row][col] = val;
+    }
+
+    public void setColumn(int col, Vector v) {
+        for (int i = 0; i < rowCount; i++) {
+            matrix[i][col] = v.get(i, 0);
+        }
     }
 
     public Matrix(double[]... matrix) {
         this.matrix = matrix;
 
-        rowCount = matrix.length;
-        columnCount = matrix[0].length;
+        this.rowCount = matrix.length;
+        this.columnCount = matrix[0].length;
+    }
+
+    public Matrix(Vector... columnVectors) {
+        this.rowCount = columnVectors[0].getDimension();
+        this.columnCount = columnVectors.length;
+        this.matrix = new double[rowCount][columnCount];
+
+        for (int i = 0; i < columnVectors.length; i++) {
+            setColumn(i, columnVectors[i]);
+        }
     }
 
     public boolean isAddable(Matrix m2) {
@@ -217,7 +242,7 @@ public class Matrix extends VectorBase {
         return new Matrix(res);
     }
 
-    public Vector[] getColumnSpace() {
+    public VectorSet getColumnSpace() {
         Vector[] columnSpace = new Vector[columnCount];
 
         for (int i = 0; i < columnCount; i++) {
@@ -230,16 +255,16 @@ public class Matrix extends VectorBase {
             columnSpace[i] = new Vector(v);
         }
 
-        return columnSpace;
+        return new VectorSet(columnSpace);
     }
 
-    public Vector[] getNullSpace() {
+    public VectorSet getNullSpace() {
         Matrix rref = getRowReducedEchelonForm();
 
         boolean[] pivots = new boolean[rref.columnCount];
         int pivotsCount = 0;
         for (int i = 0; i < columnCount; i++) {
-            for (int j = 0; j < rowCount; j++) {
+            for (int j = pivotsCount; j < rowCount; j++) {
                 if (rref.get(j, i) == 0) continue;
                 if (rref.get(j, i) == 1) {
                     pivots[i] = true;
@@ -260,26 +285,26 @@ public class Matrix extends VectorBase {
 
         for (int i = 0; i < columnCount; i++) {
             if (pivots[i]) continue;
+
             double[] vector = new double[columnCount];
 
+            int rowIndex = 0;
             for (int j = 0; j < columnCount; j++) {
-                if (!pivots[j] && i == j) {
-                    vector[j] = 1;
-                    continue;
-                }
-                if (!pivots[j] && i != j) {
-                    vector[j] = 0;
+                if (!pivots[j]) {
+                    if (i == j) vector[j] = 1;
+                    else vector[j] = 0;
                     continue;
                 }
 
-                vector[j] = -1 * rref.get(j, i);
+                vector[j] = -1 * rref.get(rowIndex, i);
+                rowIndex++;
             }
 
             nullSpace[vectorIndex] = new Vector(vector);
             vectorIndex++;
         }
 
-        return nullSpace;
+        return new VectorSet(nullSpace);
     }
 
     public Matrix[] getLUFactorization() {
