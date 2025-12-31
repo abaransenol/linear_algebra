@@ -1,6 +1,8 @@
 package vectorbase.matrices.vectors;
 
 import vectorbase.matrices.Matrix;
+import vectorbase.matrices.Solution;
+import vectorbase.matrices.SquareMatrix;
 
 import java.util.Arrays;
 import java.util.InvalidPropertiesFormatException;
@@ -91,6 +93,26 @@ public record VectorSet(Vector... vectors) {
         }
 
         return new VectorSet(basisVectors);
+    }
+
+    public Vector getRelativeCoordinatesOf(Vector v) {
+        SquareMatrix changeOfCoordinatesMatrix = new SquareMatrix(vectors());
+
+        Solution solution = changeOfCoordinatesMatrix.solve(v);
+
+        return solution.solutionVector();
+    }
+
+    public Vector getRelativeCoordinatesOf(Vector v, VectorSet otherSystem) {
+        // B is this, C is otherSystem.
+        SquareMatrix changeOfCoordinatesMatrixB = new SquareMatrix(vectors());
+        SquareMatrix changeOfCoordinatesMatrixC = new SquareMatrix(otherSystem.vectors());
+
+        Matrix changeOfCoordinatesMatrixCToB = changeOfCoordinatesMatrixB.inverse().multiplyWith(changeOfCoordinatesMatrixC);
+
+        Solution solution = changeOfCoordinatesMatrixCToB.solve(v);
+
+        return solution.solutionVector();
     }
 
     public String toString() {

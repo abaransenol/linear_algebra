@@ -67,6 +67,26 @@ public class Matrix extends VectorBase {
         }
     }
 
+    public Solution solve(Vector v) {
+        AugmentedMatrix rrefAugmented = (AugmentedMatrix) (new AugmentedMatrix(this, v)).getRowReducedEchelonForm();
+        Matrix rref = rrefAugmented.getMatrix1();
+        Vector solution = new Vector(rrefAugmented.getMatrix2());
+
+        if (
+            solution.get(solution.getDimension() - 1, 0) != 0 &&
+            rref.get(rref.getRowCount() - 1, rref.getColumnCount() - 1) == 0
+        ) {
+            return new Solution(null, null);
+        }
+
+        if (rref.getColumnCount() > rref.getRowCount()) {
+            VectorSet nullSpace = rref.getNullSpace();
+            return new Solution(solution, nullSpace);
+        }
+
+        return new Solution(solution, null);
+    }
+
     public boolean isAddable(Matrix m2) {
         return this.rowCount == m2.rowCount && this.columnCount == m2.columnCount;
     }

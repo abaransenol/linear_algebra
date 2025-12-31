@@ -1,5 +1,7 @@
 package vectorbase.matrices;
 
+import vectorbase.matrices.vectors.Vector;
+
 public class SquareMatrix extends Matrix {
     public SquareMatrix(double[]... elements) {
         super(elements);
@@ -7,6 +9,10 @@ public class SquareMatrix extends Matrix {
 
     public SquareMatrix(Matrix m) {
         super(m.getMatrix());
+    }
+
+    public SquareMatrix(Vector[] vectors) {
+        super(vectors);
     }
 
     public double determinantOriginal() {

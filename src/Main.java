@@ -8,9 +8,9 @@ public class Main {
     public static void main(String[] args) throws InvalidPropertiesFormatException {
         // Playground for the library.
 
-        double[] r1 = {1, 2, 3, 4};
-        double[] r2 = {5, 6, 7, 8};
-        double[] r3 = {9, 10, 11, 12};
+        double[] r1 = {0, 1, -4};
+        double[] r2 = {2, -3, 2};
+        double[] r3 = {4, -8, 12};
         Matrix m = new Matrix(r1, r2, r3);
 
         double[] r1_ = {-3, 6, -1, 1, 7};
@@ -18,13 +18,12 @@ public class Main {
         double[] r3_ = {2, -4, 5, 8, -4};
         Matrix m_ = new Matrix(r1_, r2_, r3_);
 
-        Vector v = new Vector(1,2,3);
-        Vector v1 = new Vector(1,0,0);
-        Vector v2 = new Vector(0,1,0);
-        Vector v3 = new Vector(0,0,1);
+        VectorSet b = new VectorSet(new Vector(1, 2), new Vector(4, 1));
+        System.out.println(b.getRelativeCoordinatesOf(new Vector(6, 5)));
 
-        VectorSet vectorSet = new VectorSet(v3, v3);
-        System.out.println(vectorSet.isLinearlyIndependent());
+        Vector v = new Vector(8,1,1);
+
+        System.out.println(m.solve(v));
 
         //System.out.println(m.getColumnSpace().getBasis());
 
