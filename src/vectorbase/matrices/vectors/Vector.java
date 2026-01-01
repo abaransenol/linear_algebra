@@ -1,48 +1,96 @@
 package vectorbase.matrices.vectors;
 
+import vectorbase.VectorBase;
 import vectorbase.matrices.Matrix;
 
-import java.util.InvalidPropertiesFormatException;
+public class Vector extends VectorBase {
+    private final double[] vector;
 
-public class Vector extends Matrix {
     public Vector(double... elements) {
-        super(new double[elements.length][1]);
+        if (elements.length == 0) throw new RuntimeException("Vector is empty.");
 
-        for (int i = 0; i < elements.length; i++) {
-            set(i, 0, elements[i]);
-        }
+        this.vector = elements;
+    }
+    
+    public double get(int i) {
+        return this.vector[i];
+    }
+    
+    public Matrix toMatrix() {
+        return new Matrix(new VectorSet(this));
     }
 
-    //TODO: projection to vector ve projection to basis ekle, orthogonal basis bulma işini hallet.
-
-    public Vector(Matrix m) {
-        super(m.getMatrix());
-    }
-
-    public boolean isOrthogonalWith(Vector v) throws InvalidPropertiesFormatException {
+    public boolean isOrthogonalWith(Vector v) {
         return this.innerProductWith(v) == 0;
     }
 
-    public boolean isOrthonormalWith(Vector v) throws InvalidPropertiesFormatException {
+    public boolean isOrthonormalWith(Vector v) {
         return this.isOrthogonalWith(v) && norm() == 1;
     }
 
-    public Vector projectionOf(Vector v) throws InvalidPropertiesFormatException {
+    public Vector projectionOf(Vector v) {
         double coefficient = this.innerProductWith(v) / v.innerProductWith(v);
 
-        return new Vector((Matrix) v.scaleWith(coefficient));
+        return (Vector) v.scaleWith(coefficient);
     }
 
-    public Vector projectionOf(VectorSet vectorSet) throws InvalidPropertiesFormatException {
-        Vector[] vectors = vectorSet.vectors();
-        Vector result = this.projectionOf(vectors[0]);
+    public Vector projectionOf(VectorSet vectorSet) {
+        Vector result = this.projectionOf(vectorSet.get(0));
 
         for (int i = 1; i < vectorSet.getSize(); i++) {
-            if (vectors[i] == null) continue;
-            Vector proj = this.projectionOf(vectors[i]);
-            result = new Vector((Matrix) result.add(proj));
+            if (vectorSet.get(i) == null) continue;
+
+            Vector proj = this.projectionOf(vectorSet.get(i));
+            result = (Vector) result.add(proj);
         }
 
         return result;
+    }
+
+    @Override
+    public VectorBase scaleWith(double c) {
+        double[] result = this.vector.clone();
+
+        for (int i = 0; i < this.getDimension(); i++) {
+            result[i] *= c;
+        }
+
+        return new Vector(result);
+    }
+
+    @Override
+    public VectorBase add(VectorBase v) {
+        if (!(v instanceof Vector v2)) throw new RuntimeException("Not a valid vector.");
+        if (this.getDimension() != v2.getDimension()) throw new RuntimeException("Vectors are not in the same dimension.");
+
+        double[] result = this.vector.clone();
+        for (int i = 0; i < this.getDimension(); i++) {
+            result[i] += this.get(i);
+        }
+
+        return new Vector(result);
+    }
+
+    @Override
+    public double innerProductWith(VectorBase v) {
+        if (!(v instanceof Vector v2)) throw new RuntimeException("Not a valid vector.");
+        if (this.getDimension() != v2.getDimension()) throw new RuntimeException("Vectors are not in the same dimension.");
+
+        double result = 0;
+        for (int i = 0; i < this.getDimension(); i++) {
+            result += this.get(i) * v2.get(i);
+        }
+
+        return result;
+    }
+
+    @Override
+    public int getDimension() {
+        return this.vector.length;
+    }
+
+    @Override
+    public String toString() {
+        return this.toMatrix().toString();
     }
 }

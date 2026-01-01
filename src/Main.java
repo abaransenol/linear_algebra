@@ -2,10 +2,8 @@ import vectorbase.matrices.Matrix;
 import vectorbase.matrices.vectors.Vector;
 import vectorbase.matrices.vectors.VectorSet;
 
-import java.util.InvalidPropertiesFormatException;
-
 public class Main {
-    public static void main(String[] args) throws InvalidPropertiesFormatException {
+    public static void main(String[] args) {
         // Playground for the library.
 
         double[] r1 = {0, 1, -4};

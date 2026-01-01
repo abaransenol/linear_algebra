@@ -1,24 +1,44 @@
 package vectorbase.matrices.vectors;
 
+import vectorbase.matrices.IdentityMatrix;
 import vectorbase.matrices.Matrix;
 import vectorbase.matrices.Solution;
 import vectorbase.matrices.SquareMatrix;
 
 import java.util.Arrays;
 import java.util.InvalidPropertiesFormatException;
+import java.util.Iterator;
 
-public record VectorSet(Vector... vectors) {
+public class VectorSet {
+    private final Vector[] vectors;
+
+    public VectorSet(Vector... vectors) {
+        if (vectors.length == 0) throw new RuntimeException("Vector set is empty.");
+
+        this.vectors = vectors;
+    }
+
+    public Vector get(int i) { return vectors[i]; }
 
     public int getSize() {
-        return vectors.length;
+        return this.vectors.length;
+    }
+
+    public int getDimension() {
+        return this.vectors[0].getDimension();
+    }
+    
+    public Matrix toMatrix() {
+        if (this.getDimension() == this.getSize()) return (new Matrix(this)).toSquareMatrix();
+        return new Matrix(this);
     }
 
     public boolean isLinearlyIndependent() {
-        return new Matrix(vectors).getNullSpace().getSize() == 0;
+        return this.toMatrix().getNullSpace().getSize() == 0;
     }
 
     public VectorSet getBasis() {
-        Matrix rref = (new Matrix(vectors())).getRowReducedEchelonForm();
+        Matrix rref = this.toMatrix().getRowReducedEchelonForm();
 
         boolean[] pivots = new boolean[rref.getColumnCount()];
         int pivotsCount = 0;
@@ -44,37 +64,42 @@ public record VectorSet(Vector... vectors) {
         for (int i = 0; i < pivots.length; i++) {
             if (!(pivots[i])) continue;
 
-            basis[basisIndex] = vectors[i];
+            basis[basisIndex] = this.get(i);
             basisIndex++;
         }
 
         return new VectorSet(basis);
     }
 
-    public VectorSet getOrthogonalBasis() throws InvalidPropertiesFormatException {
+    public VectorSet getStandardBasis() {
+        VectorSet basis = this.getBasis();
+
+        return (new IdentityMatrix(basis.getDimension())).toVectorSet();
+    }
+
+    public VectorSet getOrthogonalBasis() {
         VectorSet basis = getBasis();
-        Vector[] vectors = basis.vectors.clone();
 
         Vector[] orthogonalVectors = new Vector[basis.getSize()];
-        orthogonalVectors[0] = vectors[0];
+        orthogonalVectors[0] = basis.get(0);
 
-        for (int i = 1; i < vectors.length; i++) {
-            Vector proj = vectors[i].projectionOf(new VectorSet(orthogonalVectors));
+        for (int i = 1; i < basis.getSize(); i++) {
+            Vector v = basis.get(i);
+            Vector proj = v.projectionOf(new VectorSet(orthogonalVectors));
 
-            orthogonalVectors[i] = new Vector((Matrix) vectors[i].add(proj.scaleWith(-1)));
+            orthogonalVectors[i] = (Vector) v.add(proj.scaleWith(-1));
         }
 
         return new VectorSet(orthogonalVectors);
     }
 
-    public VectorSet getOrthonormalBasis() throws InvalidPropertiesFormatException {
+    public VectorSet getOrthonormalBasis() {
         VectorSet orthogonalBasis = getOrthogonalBasis();
-        Vector[] vectors = orthogonalBasis.vectors;
 
         Vector[] orthonormalVectors = new Vector[orthogonalBasis.getSize()];
         for (int i = 0; i < orthogonalBasis.getSize(); i++) {
-            Vector v = vectors[i];
-            Vector orthonormal = new Vector((Matrix) v.scaleWith(1 / v.norm()));
+            Vector v = orthogonalBasis.get(i);
+            Vector orthonormal = (Vector) v.scaleWith(1 / v.norm());
 
             orthonormalVectors[i] = orthonormal;
         }
@@ -82,21 +107,8 @@ public record VectorSet(Vector... vectors) {
         return new VectorSet(orthonormalVectors);
     }
 
-    public VectorSet getStandardBasis() {
-        int dimension = vectors[0].getDimension();
-        Vector[] basisVectors = new Vector[dimension];
-
-        for (int i = 0; i < dimension; i++) {
-            double[] v = new double[dimension];
-            v[i] = 1;
-            basisVectors[i] = new Vector(v);
-        }
-
-        return new VectorSet(basisVectors);
-    }
-
     public Vector getRelativeCoordinatesOf(Vector v) {
-        SquareMatrix changeOfCoordinatesMatrix = new SquareMatrix(vectors());
+        SquareMatrix changeOfCoordinatesMatrix = (SquareMatrix) this.toMatrix();
 
         Solution solution = changeOfCoordinatesMatrix.solve(v);
 
@@ -105,8 +117,8 @@ public record VectorSet(Vector... vectors) {
 
     public Vector getRelativeCoordinatesOf(Vector v, VectorSet otherSystem) {
         // B is this, C is otherSystem.
-        SquareMatrix changeOfCoordinatesMatrixB = new SquareMatrix(vectors());
-        SquareMatrix changeOfCoordinatesMatrixC = new SquareMatrix(otherSystem.vectors());
+        SquareMatrix changeOfCoordinatesMatrixB = (SquareMatrix) this.toMatrix();
+        SquareMatrix changeOfCoordinatesMatrixC = (SquareMatrix) otherSystem.toMatrix();
 
         Matrix changeOfCoordinatesMatrixCToB = changeOfCoordinatesMatrixB.inverse().multiplyWith(changeOfCoordinatesMatrixC);
 
@@ -116,6 +128,6 @@ public record VectorSet(Vector... vectors) {
     }
 
     public String toString() {
-        return Arrays.toString(vectors);
+        return Arrays.toString(this.vectors);
     }
 }

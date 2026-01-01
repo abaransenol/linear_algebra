@@ -1,37 +1,112 @@
 package vectorbase.matrices;
 
-public class AugmentedMatrix extends Matrix {
+public class AugmentedMatrix {
     private final Matrix m1;
     private final Matrix m2;
 
     public AugmentedMatrix(Matrix m1, Matrix m2) {
-        super(m1.getMatrix());
+        if (m1.getRowCount() != m2.getRowCount()) throw new RuntimeException("Matrices cannot be augmented.");
+
         this.m1 = m1;
         this.m2 = m2;
     }
 
-    @Override
-    public Matrix scaleRowWith(int r, double c) {
-        Matrix resultMatrix1 = m1.scaleRowWith(r, c);
-        Matrix resultMatrix2 = m2.scaleRowWith(r, c);
+    public AugmentedMatrix getEchelonForm() {
+        // Gets row echelon form of the m1, makes same processes to m2.
+        int pivotsRow = 0;
 
-        return new AugmentedMatrix(resultMatrix1, resultMatrix2);
+        Matrix m1 = this.m1;
+        Matrix m2 = this.m2;
+
+        // 'i' is the column index.
+        for (int i = 0; i < m1.getColumnCount(); i++) {
+            double pivot = m1.get(pivotsRow, i);
+
+            if (pivot == 0) {
+                // changing pivot to the non-zero element.
+                for (int j = pivotsRow; j < m1.getRowCount(); j++) {
+                    if (m1.get(j, i) == 0) continue;
+
+                    m1 = m1.interchangeRows(pivotsRow, j);
+                    m2 = m2.interchangeRows(pivotsRow, j);
+
+                    pivot = m1.get(pivotsRow, i);
+                    break;
+                }
+
+                // if there is no non-zero element, continue
+                if (pivot == 0) continue;
+            }
+
+            // 'j' is the row index
+            for (int j = pivotsRow + 1; j < m1.getRowCount(); j++) {
+                if (m1.get(j, i) == 0) continue;
+
+                double el = m1.get(j, i);
+                double c = -1 * (el / pivot);
+
+                m1 = m1.addRowTo(pivotsRow, j, c);
+                m2 = m2.addRowTo(pivotsRow, j, c);
+            }
+
+            pivotsRow++;
+            if (pivotsRow == m1.getRowCount() - 1) break;
+        }
+
+        return new AugmentedMatrix(m1, m2);
     }
 
-    @Override
-    public Matrix interchangeRows(int r1, int r2) {
-        Matrix resultMatrix1 = m1.interchangeRows(r1, r2);
-        Matrix resultMatrix2 = m2.interchangeRows(r1, r2);
+    public AugmentedMatrix getRowReducedEchelonForm() {
+        // Gets row reduced echelon form of the m1, makes same processes to m2.
+        int pivotsRow = 0;
 
-        return new AugmentedMatrix(resultMatrix1, resultMatrix2);
-    }
+        AugmentedMatrix echelonForm = this.getEchelonForm();
+        Matrix m1 = echelonForm.getMatrix1();
+        Matrix m2 = echelonForm.getMatrix2();
 
-    @Override
-    public Matrix addRowTo(int r1, int r2, double c) {
-        Matrix resultMatrix1 = m1.addRowTo(r1, r2, c);
-        Matrix resultMatrix2 = m2.addRowTo(r1, r2, c);
+        // 'i' is the column index.
+        for (int i = 0; i < m1.getColumnCount(); i++) {
+            double pivot = m1.get(pivotsRow, i);
 
-        return new AugmentedMatrix (resultMatrix1, resultMatrix2);
+            if (pivot == 0) {
+                // changing pivot to the non-zero element.
+                for (int j = pivotsRow; j < m1.getRowCount(); j++) {
+                    if (m1.get(j, i) == 0) continue;
+
+                    m1 = m1.interchangeRows(pivotsRow, j);
+                    m2 = m2.interchangeRows(pivotsRow, j);
+
+                    pivot = m1.get(pivotsRow, i);
+                    break;
+                }
+
+                // if there is no non-zero element, continue
+                if (pivot == 0) continue;
+            }
+
+            if (pivot != 1) {
+                m1 = m1.scaleRowWith(pivotsRow ,1 / pivot);
+                m2 = m2.scaleRowWith(pivotsRow ,1 / pivot);
+
+                pivot = m1.get(pivotsRow, i);
+            }
+
+            // 'j' is the row index
+            for (int j = 0; j < pivotsRow; j++) {
+                if (m1.get(j, i) == 0) continue;
+
+                double el = m1.get(j, i);
+                double c = -1 * (el / pivot);
+
+                m1 = m1.addRowTo(pivotsRow, j, c);
+                m2 = m2.addRowTo(pivotsRow, j, c);
+            }
+
+            if (pivotsRow == m1.getRowCount() - 1) break;
+            pivotsRow++;
+        }
+
+        return new AugmentedMatrix(m1, m2);
     }
 
     public Matrix getMatrix1() {
